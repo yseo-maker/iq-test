@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQテスト — 認知能力測定</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #1a3a5c;
+            --secondary: #2d6a9f;
+            --accent: #4fa3e0;
+            --bg: #eef2f7;
+            --card: #ffffff;
+            --text: #1a2a3a;
+            --correct: #27ae60;
+            --wrong: #e74c3c;
+        }
+
+        body {
+            font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 16px;
+        }
+
+        .screen { display: none; width: 100%; max-width: 820px; }
+        .screen.active { display: block; }
+
+        /* ── Welcome ── */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 48px;
+            box-shadow: 0 6px 32px rgba(0,0,0,0.09);
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .brain-icon { font-size: 64px; line-height: 1; margin-bottom: 16px; }
+
+        h1 {
+            font-size: 34px;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle { color: #777; font-size: 15px; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .info-box {
+            background: var(--bg);
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .info-box .val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .info-box .lbl {
+            font-size: 12px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .sections-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
+
+        .section-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .section-icon { font-size: 22px; }
+
+        .section-info .name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .section-info .count {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .notice {
+            background: #f0f7ff;
+            border-left: 4px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 17px;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+        }
+
+        /* ── Question ── */
+        .q-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .q-counter { font-size: 13px; color: #777; font-weight: 600; }
+
+        .timer-num {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--secondary);
+            min-width: 44px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-num.danger { color: var(--wrong); }
+
+        .bar-wrap {
+            width: 100%;
+            height: 5px;
+            background: #dde3eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .prog-fill { background: var(--secondary); }
+
+        .time-fill {
+            background: var(--accent);
+            transition: width 1s linear;
+        }
+
+        .time-fill.danger { background: var(--wrong); }
+
+        .q-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 36px 40px;
+            box-shadow: 0 6px 32px rgba(0,0,0,0.09);
+            margin-top: 18px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            background: #e8f2fb;
+            color: var(--secondary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .q-text {
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            white-space: pre-wrap;
+        }
+
+        .q-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .opts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .opt {
+            background: var(--bg);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: left;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .opt:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: #e6f2fb;
+        }
+
+        .opt.correct {
+            border-color: var(--correct);
+            background: #eaf7f0;
+            color: var(--correct);
+            font-weight: 700;
+        }
+
+        .opt.wrong {
+            border-color: var(--wrong);
+            background: #fdecea;
+            color: var(--wrong);
+        }
+
+        .opt:disabled { cursor: default; }
+
+        /* ── Results ── */
+        .result-top { text-align: center; margin-bottom: 32px; }
+
+        .iq-num {
+            font-size: 100px;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+            letter-spacing: -4px;
+        }
+
+        .iq-lbl { font-size: 16px; color: #888; margin: 6px 0 4px; }
+
+        .iq-cat {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .iq-pct { font-size: 14px; color: #888; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .stat {
+            background: var(--bg);
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .stat .val {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .stat .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+        /* Percentile bar */
+        .pct-section { margin-bottom: 28px; }
+
+        .pct-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 14px;
+        }
+
+        .pct-bar-wrap {
+            position: relative;
+            height: 36px;
+            background: linear-gradient(to right, #e74c3c 0%, #e67e22 20%, #f1c40f 40%, #2ecc71 60%, #3498db 80%, #8e44ad 100%);
+            border-radius: 18px;
+            margin-bottom: 6px;
+        }
+
+        .pct-marker {
+            position: absolute;
+            top: -10px;
+            transform: translateX(-50%);
+        }
+
+        .pct-arrow {
+            width: 0; height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-top: 13px solid var(--primary);
+            margin: 0 auto;
+        }
+
+        .pct-label {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .pct-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #aaa;
+            padding: 0 6px;
+            margin-top: 8px;
+        }
+
+        /* Breakdown */
+        .breakdown { margin-bottom: 28px; }
+
+        .breakdown-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 14px;
+        }
+
+        .bk-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .bk-icon { font-size: 16px; margin-right: 10px; }
+
+        .bk-name { width: 130px; color: #555; }
+
+        .bk-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e4eaf2;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 12px;
+        }
+
+        .bk-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--secondary);
+            transition: width 1s ease;
+        }
+
+        .bk-score {
+            width: 38px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .disclaimer {
+            font-size: 11px;
+            color: #bbb;
+            text-align: center;
+            line-height: 1.7;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 580px) {
+            .card { padding: 28px 20px; }
+            .info-grid, .stats-row { grid-template-columns: 1fr 1fr; }
+            .sections-list, .opts { grid-template-columns: 1fr; }
+            .iq-num { font-size: 72px; }
+            h1 { font-size: 26px; }
+            .q-card { padding: 24px 20px; }
+            .q-text { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== WELCOME ===== -->
+<div id="screenWelcome" class="screen active">
+    <div class="card">
+        <div class="welcome-header">
+            <div class="brain-icon">🧠</div>
+            <h1>IQテスト</h1>
+            <p class="subtitle">科学的根拠に基づく認知能力測定テスト</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <div class="val">30</div>
+                <div class="lbl">問題数</div>
+            </div>
+            <div class="info-box">
+                <div class="val">40<span style="font-size:16px">秒</span></div>
+                <div class="lbl">問題ごとの制限時間</div>
+            </div>
+            <div class="info-box">
+                <div class="val">4</div>
+                <div class="lbl">測定分野</div>
+            </div>
+        </div>
+
+        <div class="sections-list">
+            <div class="section-item">
+                <span class="section-icon">🔢</span>
+                <div class="section-info">
+                    <div class="name">数列・数学的推論</div>
+                    <div class="count">8問</div>
+                </div>
+            </div>
+            <div class="section-item">
+                <span class="section-icon">📝</span>
+                <div class="section-info">
+                    <div class="name">言語・語彙</div>
+                    <div class="count">8問</div>
+                </div>
+            </div>
+            <div class="section-item">
+                <span class="section-icon">🔷</span>
+                <div class="section-info">
+                    <div class="name">図形パターン認識</div>
+                    <div class="count">7問</div>
+                </div>
+            </div>
+            <div class="section-item">
+                <span class="section-icon">🎲</span>
+                <div class="section-info">
+                    <div class="name">空間認識</div>
+                    <div class="count">7問</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notice">
+            各問題には <strong>40秒</strong> の制限があります。時間切れになると自動的に次の問題へ進みます。<br>
+            静かな環境で、集中して取り組んでください。途中でやり直すことはできません。
+        </div>
+
+        <button class="btn" onclick="startTest()">テストを開始する →</button>
+    </div>
+</div>
+
+<!-- ===== QUESTION ===== -->
+<div id="screenQuestion" class="screen">
+    <div class="q-meta">
+        <span class="q-counter">問題 <span id="qNum">1</span> / 30</span>
+        <span class="timer-num" id="timerNum">40</span>
+    </div>
+
+    <div class="bar-wrap">
+        <div class="bar-fill prog-fill" id="progFill" style="width:0%"></div>
+    </div>
+    <div class="bar-wrap" style="margin-bottom:0">
+        <div class="bar-fill time-fill" id="timeFill" style="width:100%"></div>
+    </div>
+
+    <div class="q-card">
+        <span class="type-badge" id="typeBadge">数列推論</span>
+        <div class="q-text" id="qText"></div>
+        <div class="q-visual" id="qVisual" style="display:none"></div>
+        <div class="opts" id="opts"></div>
+    </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div id="screenResult" class="screen">
+    <div class="card">
+        <div class="result-top">
+            <div class="iq-lbl">あなたの推定IQスコア</div>
+            <div class="iq-num" id="rIQ">--</div>
+            <div class="iq-cat" id="rCat">--</div>
+            <div class="iq-pct" id="rPct"></div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat">
+                <div class="val" id="rCorrect">0/30</div>
+                <div class="lbl">正解数</div>
+            </div>
+            <div class="stat">
+                <div class="val" id="rAcc">0%</div>
+                <div class="lbl">正答率</div>
+            </div>
+            <div class="stat">
+                <div class="val" id="rAvgTime">0秒</div>
+                <div class="lbl">平均解答時間</div>
+            </div>
+        </div>
+
+        <div class="pct-section">
+            <div class="pct-title">📊 集団内の位置</div>
+            <div class="pct-bar-wrap">
+                <div class="pct-marker" id="pctMarker" style="left:50%">
+                    <div class="pct-arrow"></div>
+                    <div class="pct-label" id="pctLabel">上位50%</div>
+                </div>
+            </div>
+            <div class="pct-axis">
+                <span>IQ 70</span>
+                <span>IQ 85</span>
+                <span>IQ 100</span>
+                <span>IQ 115</span>
+                <span>IQ 130</span>
+                <span>IQ 145+</span>
+            </div>
+        </div>
+
+        <div class="breakdown">
+            <div class="breakdown-title">📋 分野別スコア</div>
+            <div class="bk-item">
+                <span class="bk-icon">🔢</span>
+                <span class="bk-name">数列・数学推論</span>
+                <div class="bk-bar-bg"><div class="bk-bar-fill" id="bNumber" style="width:0%"></div></div>
+                <span class="bk-score" id="sNumber">0/8</span>
+            </div>
+            <div class="bk-item">
+                <span class="bk-icon">📝</span>
+                <span class="bk-name">言語・語彙</span>
+                <div class="bk-bar-bg"><div class="bk-bar-fill" id="bLanguage" style="width:0%"></div></div>
+                <span class="bk-score" id="sLanguage">0/8</span>
+            </div>
+            <div class="bk-item">
+                <span class="bk-icon">🔷</span>
+                <span class="bk-name">図形パターン</span>
+                <div class="bk-bar-bg"><div class="bk-bar-fill" id="bPattern" style="width:0%"></div></div>
+                <span class="bk-score" id="sPattern">0/7</span>
+            </div>
+            <div class="bk-item">
+                <span class="bk-icon">🎲</span>
+                <span class="bk-name">空間認識</span>
+                <div class="bk-bar-bg"><div class="bk-bar-fill" id="bSpatial" style="width:0%"></div></div>
+                <span class="bk-score" id="sSpatial">0/7</span>
+            </div>
+        </div>
+
+        <button class="btn" onclick="startTest()">もう一度チャレンジする →</button>
+
+        <p class="disclaimer">
+            ※ このテストは娯楽・学習目的です。公式IQ検査（ウェクスラー式・ビネー式など）の代替にはなりません。<br>
+            正式なIQ測定は、資格を持つ専門家が標準化された検査で行う必要があります。
+        </p>
+    </div>
+</div>
+
+<script>
+// =============================================================
+// QUESTIONS
+// =============================================================
+const Q = [
+    // ─── 数列・数学的推論 (8問) ───
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n\n2, 4, 8, 16, ？',
+        opts:['24','28','32','36'], ans:2
+    },
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n\n1, 1, 2, 3, 5, 8, ？',
+        opts:['10','11','12','13'], ans:3
+    },
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n\n1, 4, 9, 16, 25, ？',
+        opts:['30','36','42','49'], ans:1
+    },
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n\n3, 5, 9, 15, 23, ？',
+        opts:['30','31','33','35'], ans:2
+    },
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n\n100, 91, 83, 76, 70, ？',
+        opts:['64','65','66','67'], ans:1
+    },
+    {
+        type:'number', badge:'数学的推論',
+        text:'3人が同じペースで働くと6日で終わる仕事があります。\n同じ仕事を9人で行うと何日かかりますか？',
+        opts:['1日','2日','3日','4日'], ans:1
+    },
+    {
+        type:'number', badge:'数学的推論',
+        text:'ある商品を20%値上げした後、さらに20%値下げしました。\n元の価格と比べるとどうなりますか？',
+        opts:['変わらない','4%安くなる','4%高くなる','20%安くなる'], ans:1
+    },
+    {
+        type:'number', badge:'数列推論',
+        text:'次の数列の「？」に入る数字を選んでください。\n（ある規則性があります）\n\n2, 3, 5, 7, 11, 13, ？',
+        opts:['14','15','16','17'], ans:3
+    },
+
+    // ─── 言語・語彙 (8問) ───
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「明るい」の反対語として最も適切なものを選んでください。',
+        opts:['暗い','黒い','陰気な','低い'], ans:0
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「医者 : 病院」と同じ関係になるものを選んでください。\n\n「教師 : ？」',
+        opts:['本','学校','生徒','授業'], ans:1
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「迅速」と最も意味が近い言葉を選んでください。',
+        opts:['丁寧','素早い','正確','慎重'], ans:1
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'次の4つのうち、意味の異なる「仲間外れ」を選んでください。\n\n喜び　悦び　歓び　悲しみ',
+        opts:['喜び','悦び','歓び','悲しみ'], ans:3
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「本 : 図書館」と同じ関係になるものを選んでください。\n\n「絵画 : ？」',
+        opts:['公園','学校','美術館','博物館'], ans:2
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「漸進的」の意味として正しいものを選んでください。',
+        opts:['急激に変化する','少しずつ前進する','後退する','繰り返す'], ans:1
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「因果応報」の意味として最も適切なものを選んでください。',
+        opts:['良いことをすれば良い結果が返る','善悪の行いは相応の結果をもたらす','運命は変えられない','努力は必ず報われる'], ans:1
+    },
+    {
+        type:'language', badge:'言語・語彙',
+        text:'「温故知新」の意味として正しいものを選んでください。',
+        opts:['古いものを大切にする','昔を学び新しい知識を得る','新しいものを積極的に取り入れる','歴史は繰り返す'], ans:1
+    },
+
+    // ─── 図形パターン認識 (7問) ───
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'図形の並びのルールを見つけ、5番目に来る図形を選んでください。',
+        visual:`<svg width="380" height="90" viewBox="0 0 380 90">
+            <circle cx="40" cy="45" r="28" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <rect x="112" y="17" width="56" height="56" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <polygon points="240,17 212,73 268,73" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <circle cx="340" cy="45" r="28" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <text x="40" y="85" text-anchor="middle" fill="#aaa" font-size="11">1番目</text>
+            <text x="140" y="85" text-anchor="middle" fill="#aaa" font-size="11">2番目</text>
+            <text x="240" y="85" text-anchor="middle" fill="#aaa" font-size="11">3番目</text>
+            <text x="340" y="85" text-anchor="middle" fill="#aaa" font-size="11">4番目</text>
+        </svg>`,
+        opts:['円（まる）','四角','三角','ひし形'], ans:1
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'次の4つの図形から「仲間外れ」を選んでください。',
+        visual:`<svg width="380" height="100" viewBox="0 0 380 100">
+            <polygon points="40,75 12,82 68,82" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <text x="40" y="97" text-anchor="middle" fill="#333" font-size="13" font-weight="700">A</text>
+            <rect x="115" y="28" width="50" height="50" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <text x="140" y="97" text-anchor="middle" fill="#333" font-size="13" font-weight="700">B</text>
+            <polygon points="240,20 265,42 255,70 225,70 215,42" fill="none" stroke="#2d6a9f" stroke-width="3"/>
+            <text x="240" y="97" text-anchor="middle" fill="#333" font-size="13" font-weight="700">C</text>
+            <circle cx="340" cy="50" r="30" fill="none" stroke="#e74c3c" stroke-width="3"/>
+            <text x="340" y="97" text-anchor="middle" fill="#333" font-size="13" font-weight="700">D</text>
+        </svg>`,
+        opts:['A（三角形）','B（四角形）','C（五角形）','D（円）'], ans:3
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'3×3 のマトリックスの「？」に入る図形を選んでください。',
+        visual:`<svg width="340" height="280" viewBox="0 0 340 280">
+            <rect x="8" y="8" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="122" y="8" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="236" y="8" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="8" y="106" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="122" y="106" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="236" y="106" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="8" y="204" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="122" y="204" width="96" height="80" rx="6" fill="#f0f4f8" stroke="#ccc"/>
+            <rect x="236" y="204" width="96" height="80" rx="6" fill="#e8f4fd" stroke="#2d6a9f" stroke-width="2" stroke-dasharray="5,3"/>
+            <!-- Row 1: 1, 2, 3 circles -->
+            <circle cx="56" cy="48" r="18" fill="#2d6a9f"/>
+            <circle cx="155" cy="48" r="14" fill="#2d6a9f"/>
+            <circle cx="185" cy="48" r="14" fill="#2d6a9f"/>
+            <circle cx="258" cy="48" r="11" fill="#2d6a9f"/>
+            <circle cx="284" cy="48" r="11" fill="#2d6a9f"/>
+            <circle cx="310" cy="48" r="11" fill="#2d6a9f"/>
+            <!-- Row 2: 1, 2, 3 squares -->
+            <rect x="40" y="130" width="32" height="32" fill="#2d6a9f"/>
+            <rect x="145" y="132" width="26" height="26" fill="#2d6a9f"/>
+            <rect x="177" y="132" width="26" height="26" fill="#2d6a9f"/>
+            <rect x="248" y="134" width="21" height="21" fill="#2d6a9f"/>
+            <rect x="274" y="134" width="21" height="21" fill="#2d6a9f"/>
+            <rect x="300" y="134" width="21" height="21" fill="#2d6a9f"/>
+            <!-- Row 3: 1, 2 triangles + ? -->
+            <polygon points="56,228 36,268 76,268" fill="#2d6a9f"/>
+            <polygon points="155,228 138,264 172,264" fill="#2d6a9f"/>
+            <polygon points="190,228 173,264 207,264" fill="#2d6a9f"/>
+            <text x="284" y="258" text-anchor="middle" fill="#2d6a9f" font-size="34" font-weight="900">?</text>
+        </svg>`,
+        opts:['三角形が1つ','三角形が2つ','三角形が3つ','三角形が4つ'], ans:2
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'次のパターンの「？」に入るものを選んでください。\n\n■ □ ■ □ ■ □ ？',
+        opts:['■（黒）','□（白）','▲（三角）','●（丸）'], ans:0
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'円のサイズが変化するパターンを見て、5番目の円の大きさを選んでください。',
+        visual:`<svg width="400" height="120" viewBox="0 0 400 120">
+            <circle cx="40" cy="60" r="10" fill="#2d6a9f"/>
+            <text x="40" y="110" text-anchor="middle" fill="#aaa" font-size="11">1番目</text>
+            <circle cx="120" cy="60" r="22" fill="#2d6a9f"/>
+            <text x="120" y="110" text-anchor="middle" fill="#aaa" font-size="11">2番目</text>
+            <circle cx="210" cy="60" r="38" fill="#2d6a9f"/>
+            <text x="210" y="110" text-anchor="middle" fill="#aaa" font-size="11">3番目</text>
+            <circle cx="300" cy="60" r="22" fill="#2d6a9f"/>
+            <text x="300" y="110" text-anchor="middle" fill="#aaa" font-size="11">4番目</text>
+            <text x="375" y="65" text-anchor="middle" fill="#2d6a9f" font-size="28" font-weight="900">?</text>
+            <text x="375" y="110" text-anchor="middle" fill="#aaa" font-size="11">5番目</text>
+        </svg>`,
+        opts:['最小（1番目と同じ）','中（2番目・4番目と同じ）','大（3番目と同じ）','さらに大きい'], ans:0
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'各行の図形数が増えるパターンがあります。\n行1：3個、行2：5個、行3：7個\n行4は何個ですか？',
+        opts:['8個','9個','10個','11個'], ans:1
+    },
+    {
+        type:'pattern', badge:'図形パターン',
+        text:'3×3 の数字マトリックスの「？」に入る数字を選んでください。\n\n行1：1, 2, 3\n行2：2, 4, 6\n行3：3, 6, ？',
+        opts:['7','8','9','12'], ans:2
+    },
+
+    // ─── 空間認識 (7問) ───
+    {
+        type:'spatial', badge:'空間認識',
+        text:'下のL字型を「時計回りに90°」回転させると、どの形になりますか？',
+        visual:`<svg width="400" height="175" viewBox="0 0 400 175">
+            <!-- 元の図形ラベル -->
+            <text x="55" y="18" text-anchor="middle" fill="#555" font-size="12" font-weight="600">元の図形</text>
+            <!-- L字（左縦・下横） -->
+            <rect x="25" y="25" width="30" height="100" fill="#2d6a9f"/>
+            <rect x="25" y="95" width="60" height="30" fill="#2d6a9f"/>
+            <!-- 選択肢ラベル -->
+            <text x="55" y="165" text-anchor="middle" fill="#333" font-size="12" font-weight="700">元</text>
+
+            <line x1="105" y1="15" x2="105" y2="155" stroke="#ddd" stroke-width="1"/>
+
+            <!-- A: 時計回り90° (横上・右縦) -->
+            <text x="175" y="18" text-anchor="middle" fill="#555" font-size="12" font-weight="600">A</text>
+            <rect x="130" y="25" width="90" height="30" fill="#2d6a9f"/>
+            <rect x="190" y="25" width="30" height="100" fill="#2d6a9f"/>
+            <text x="175" y="165" text-anchor="middle" fill="#333" font-size="12" font-weight="700">A</text>
+
+            <!-- B: 180° (右縦・上横) -->
+            <text x="275" y="18" text-anchor="middle" fill="#555" font-size="12" font-weight="600">B</text>
+            <rect x="245" y="25" width="60" height="30" fill="#a0c0e0"/>
+            <rect x="275" y="25" width="30" height="100" fill="#a0c0e0"/>
+            <text x="275" y="165" text-anchor="middle" fill="#333" font-size="12" font-weight="700">B</text>
+
+            <!-- C: 反時計回り90° -->
+            <text x="365" y="18" text-anchor="middle" fill="#555" font-size="12" font-weight="600">C</text>
+            <rect x="325" y="95" width="90" height="30" fill="#a0c0e0"/>
+            <rect x="325" y="25" width="30" height="100" fill="#a0c0e0"/>
+            <text x="365" y="165" text-anchor="middle" fill="#333" font-size="12" font-weight="700">C</text>
+        </svg>`,
+        opts:['A（濃い青）','B（薄い青・上横）','C（薄い青・下横）','どれでもない'], ans:0
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'鏡に映しても元と同じ形に見える（左右対称な）文字を選んでください。',
+        opts:['R','A','F','G'], ans:1
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'「立方体の展開図」として正しいものを選んでください。',
+        visual:`<svg width="380" height="180" viewBox="0 0 380 180">
+            <!-- A: 十字型（正しい） -->
+            <text x="55" y="18" text-anchor="middle" fill="#333" font-size="12" font-weight="700">A：十字型</text>
+            <rect x="25" y="22" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <rect x="25" y="52" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <rect x="55" y="52" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <rect x="85" y="52" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <rect x="25" y="82" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <rect x="25" y="112" width="30" height="30" fill="none" stroke="#2d6a9f" stroke-width="2"/>
+            <text x="55" y="165" text-anchor="middle" fill="#27ae60" font-size="11">↑ 一般的な展開図</text>
+
+            <!-- B: Z字型（正しい） -->
+            <text x="235" y="18" text-anchor="middle" fill="#333" font-size="12" font-weight="700">B：Z字型</text>
+            <rect x="155" y="22" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <rect x="185" y="22" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <rect x="185" y="52" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <rect x="215" y="52" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <rect x="245" y="52" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <rect x="275" y="52" width="30" height="30" fill="none" stroke="#e74c3c" stroke-width="2"/>
+            <text x="220" y="165" text-anchor="middle" fill="#e74c3c" font-size="11">↑ 立方体にならない</text>
+        </svg>`,
+        opts:['A（十字型）のみ正しい','B（Z字型）のみ正しい','両方正しい','両方間違い'], ans:0
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'「上から見ると円、正面から見ると三角形」に見える立体はどれですか？',
+        opts:['球','円柱','円錐','三角柱'], ans:2
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'正六面体（立方体）の頂点・辺・面の数をすべて合計するといくつですか？',
+        opts:['24','26','28','30'], ans:1
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'1辺が4cmの立方体があります。\n表面積（cm²）から体積（cm³）を引いた差はいくつですか？',
+        opts:['32','0','-32','64'], ans:0
+    },
+    {
+        type:'spatial', badge:'空間認識',
+        text:'4面の壁を塗るとき「隣り合う壁は違う色」にする場合、最低何色必要ですか？\n（部屋は長方形で、4面の壁が隣り合っています）',
+        opts:['1色','2色','3色','4色'], ans:1
+    }
+];
+
+// =============================================================
+// STATE
+// =============================================================
+let cur = 0;
+let answers = [];
+let times = [];
+let timerID = null;
+let timeLeft = 40;
+let qStart = 0;
+const LIMIT = 40;
+
+// =============================================================
+// CORE
+// =============================================================
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function startTest() {
+    cur = 0;
+    answers = new Array(Q.length).fill(-1);
+    times = new Array(Q.length).fill(0);
+    show('screenQuestion');
+    loadQ();
+}
+
+function loadQ() {
+    const q = Q[cur];
+    document.getElementById('qNum').textContent = cur + 1;
+    document.getElementById('progFill').style.width = `${(cur / Q.length) * 100}%`;
+    document.getElementById('typeBadge').textContent = q.badge;
+    document.getElementById('qText').textContent = q.text;
+
+    const vis = document.getElementById('qVisual');
+    if (q.visual) {
+        vis.style.display = 'flex';
+        vis.innerHTML = q.visual;
+    } else {
+        vis.style.display = 'none';
+        vis.innerHTML = '';
+    }
+
+    const grid = document.getElementById('opts');
+    grid.innerHTML = '';
+    const labels = ['A', 'B', 'C', 'D'];
+    q.opts.forEach((o, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.textContent = `${labels[i]}．${o}`;
+        btn.onclick = () => pick(i);
+        grid.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+function startTimer() {
+    clearInterval(timerID);
+    timeLeft = LIMIT;
+    qStart = Date.now();
+
+    const numEl = document.getElementById('timerNum');
+    const fillEl = document.getElementById('timeFill');
+    numEl.textContent = timeLeft;
+    numEl.classList.remove('danger');
+    fillEl.classList.remove('danger');
+    fillEl.style.width = '100%';
+
+    timerID = setInterval(() => {
+        timeLeft--;
+        numEl.textContent = timeLeft;
+        fillEl.style.width = `${(timeLeft / LIMIT) * 100}%`;
+
+        if (timeLeft <= 10) {
+            numEl.classList.add('danger');
+            fillEl.classList.add('danger');
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerID);
+            times[cur] = LIMIT;
+            lockOpts();
+            setTimeout(advance, 900);
+        }
+    }, 1000);
+}
+
+function pick(i) {
+    clearInterval(timerID);
+    times[cur] = Math.min((Date.now() - qStart) / 1000, LIMIT);
+    answers[cur] = i;
+
+    const btns = document.querySelectorAll('.opt');
+    btns.forEach((b, j) => {
+        b.disabled = true;
+        if (j === Q[cur].ans) b.classList.add('correct');
+        else if (j === i) b.classList.add('wrong');
+    });
+
+    setTimeout(advance, 1000);
+}
+
+function lockOpts() {
+    const btns = document.querySelectorAll('.opt');
+    btns.forEach((b, j) => {
+        b.disabled = true;
+        if (j === Q[cur].ans) b.classList.add('correct');
+    });
+}
+
+function advance() {
+    cur++;
+    if (cur >= Q.length) showResults();
+    else loadQ();
+}
+
+// =============================================================
+// RESULTS
+// =============================================================
+function showResults() {
+    show('screenResult');
+
+    const typeTotals = { number: 8, language: 8, pattern: 7, spatial: 7 };
+    const typeCorrect = { number: 0, language: 0, pattern: 0, spatial: 0 };
+    let totalCorrect = 0;
+    let totalTime = 0;
+
+    Q.forEach((q, i) => {
+        if (answers[i] === q.ans) {
+            typeCorrect[q.type]++;
+            totalCorrect++;
+        }
+        totalTime += times[i];
+    });
+
+    const rawScore = totalCorrect / Q.length;
+    const avgT = totalTime / Q.length;
+    const speedBonus = Math.max(0, (20 - avgT) / 20) * 8;
+    const z = (rawScore - 0.5) / 0.18;
+    let iq = Math.round(100 + z * 15 + speedBonus);
+    iq = Math.max(70, Math.min(145, iq));
+
+    document.getElementById('rIQ').textContent = iq;
+    document.getElementById('rCorrect').textContent = `${totalCorrect}/30`;
+    document.getElementById('rAcc').textContent = `${Math.round(rawScore * 100)}%`;
+    document.getElementById('rAvgTime').textContent = `${Math.round(avgT)}秒`;
+
+    // Category
+    let cat, catColor;
+    if      (iq >= 140) { cat = '天才レベル';         catColor = '#8e44ad'; }
+    else if (iq >= 130) { cat = '非常に優秀';          catColor = '#2980b9'; }
+    else if (iq >= 120) { cat = '優秀';               catColor = '#27ae60'; }
+    else if (iq >= 110) { cat = '平均より高い';         catColor = '#16a085'; }
+    else if (iq >= 90)  { cat = '平均的';              catColor = '#f39c12'; }
+    else if (iq >= 80)  { cat = '平均よりやや低い';     catColor = '#e67e22'; }
+    else                { cat = '基礎力を伸ばそう';     catColor = '#e74c3c'; }
+
+    const catEl = document.getElementById('rCat');
+    catEl.textContent = cat;
+    catEl.style.color = catColor;
+
+    // Percentile
+    const pct = normalCDF((iq - 100) / 15) * 100;
+    const pctPos = Math.max(3, Math.min(97, pct));
+    const rank = Math.round(100 - pct);
+    document.getElementById('pctMarker').style.left = `${pctPos}%`;
+    document.getElementById('pctLabel').textContent = `上位 ${rank}%`;
+    document.getElementById('rPct').textContent = `全体の上位 ${rank}% に位置します`;
+
+    // Breakdown bars (animate after render)
+    setTimeout(() => {
+        [
+            ['number','bNumber','sNumber'],
+            ['language','bLanguage','sLanguage'],
+            ['pattern','bPattern','sPattern'],
+            ['spatial','bSpatial','sSpatial'],
+        ].forEach(([t, barId, scoreId]) => {
+            const c = typeCorrect[t];
+            const tot = typeTotals[t];
+            document.getElementById(barId).style.width = `${(c/tot)*100}%`;
+            document.getElementById(scoreId).textContent = `${c}/${tot}`;
+        });
+    }, 100);
+}
+
+function normalCDF(x) {
+    const a1=0.254829592, a2=-0.284496736, a3=1.421413741,
+          a4=-1.453152027, a5=1.061405429, p=0.3275911;
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x) / Math.sqrt(2);
+    const t = 1 / (1 + p*x);
+    const y = 1 - ((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+    return 0.5*(1 + sign*y);
+}
+</script>
+</body>
+</html>
